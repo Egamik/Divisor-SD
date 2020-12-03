@@ -15,7 +15,6 @@ END registrador_sh;
 ARCHITECTURE behav OF registrador_sh IS
 signal fio: std_logic_vector(n-1 downto 0);
 BEGIN
-	Q <= fio;
 	process(clk)
 	begin
 		if (clk'event and clk = '1') then
@@ -24,6 +23,7 @@ BEGIN
 			elsif (carga = '0' and shift = '1') then
 				out_shift <= fio(fio'high);
 				fio <= fio(fio'high-1 downto fio'low) & in_shift;
+				Q <= fio;
 			end if;
 		end if;
 	end process;
