@@ -77,12 +77,13 @@ end component;
 -- Sinais principais
 signal saiDIV, saiREM, zero_vec: std_logic_vector(n-1 downto 0);
 signal zero, um: std_logic;
-signal compDIV: std_logic_vector((n/2)-1 downto 0) := (others=>'0');
-signal entDIV, outDIV, divMAG: std_logic_vector(2*n-1 downto 0);
+signal compDIV: std_logic_vector(n-1 downto 0) := (others=>'0');
+signal entDIV, outDIV, divMAG, entMAGREM: std_logic_vector(2*n-1 downto 0);
 signal entMUX, saiMUX: std_logic_vector(n-1 downto 0);
 signal outCOMP: std_logic_vector(2 downto 0);
 -- Sinais contador
 constant j: natural := natural(round(log2(real(n))));
+signal zero_j: std_logic_vector(j downto 0);
 signal um_vec, saiSOMA: std_logic_vector(j downto 0); -- log2
 signal entCont, saiCont, soma_um: std_logic_vector(j downto 0);
 
@@ -92,12 +93,13 @@ zero <= '0';
 um <= '1';
 zero_vec <= (others=>'0');
 um_vec <= (others=>'1');
-soma_um <= (others=>'0');
-soma_um(0) <= '1';
+soma_um <= (0=>'1', others=>'0');
+zero_j <= (others=> '0');
 -- divMAG <= zero_vec & outDIV;
 -- Sinais dos componentes
 entDIV <= DIVISOR & compDIV;
 saiCOMPARADOR <= outCOMP(2);
+entMAGREM <= compDIV & saiREM;
 outREM <= saiREM;
 
 -- Divisor
@@ -106,9 +108,9 @@ div: registrador_sh_r generic map(2*n) port map(clk, cargaDIV, zero, shDIV, entD
 quociente: registrador_sh generic map(n) port map(clk, cargaQUO, outCOMP(2), shQUO, zero_vec, outQUO); -- QUOCIENTE
 resto: registrador generic map(n) port map(clk, cargaREM, saiMUX, saiREM); -- DIVIDENDO
 sub: subtrator generic map(n) port map(saiREM, outDIV(n-1 downto 0), entMUX);
-mag: comparador_magnitude generic map(2*n) port map(outDIV, saiREM, outCOMP); -- Alterado
+mag: comparador_magnitude generic map(2*n) port map(outDIV, entMAGREM, outCOMP); -- Alterado
 -- Contador
-muxCONT: mux2para1 generic map(j+1) port map(zero_vec, saiSOMA, selMUX, entCont);
+muxCONT: mux2para1 generic map(j+1) port map(zero_j, saiSOMA, selMUX, entCont);
 contador: registrador generic map(j+1) port map(clk, cargaCONT, entCont, saiCont);
 soma: somador generic map(j+1) port map(soma_um, saiCont, saiSOMA);
 compCONT: comparadorMSBlsb generic map(j+1) port map(saiCont, outCount);
